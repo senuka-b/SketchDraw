@@ -4,7 +4,6 @@ class PageHandler {
          .then(response => response.text())
          .then(data => {
              document.getElementById('root').innerHTML = data;
-             // Optionally, reinitialize scripts or event listeners here
          })
          .catch(error => {
              console.error('Error loading content:', error);
