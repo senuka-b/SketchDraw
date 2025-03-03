@@ -11,14 +11,14 @@
 
     <div id="root"><h1 class="title">Loading...</h1></div>    
 
-    <script src="assets/js/pageHandler.js"></script>
-    <script>
-           // Function to load external HTML content into the #root div
-        PageHandler.loadContent('pages/init.html');
-        console.log("HGeloo");
-        
+    
+    <script type="module">
+        import {PageHandler} from "./assets/js/pageHandler.js";
+        PageHandler.loadContent('init'); 
+
     </script>
 
+    
 
 </body>
 
