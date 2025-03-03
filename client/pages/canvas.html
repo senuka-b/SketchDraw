@@ -1,13 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SketchDraw - Canvas</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-</head>
-<body>
-    
-</body>
+    <title>SketchDraw - Canvas</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
+    />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+  </head>
+
+  <body>
+    <div
+      class="box is-fullwidth is-flex is-justify-content-center is-align-items-center is-flex-direction-column"
+    >
+      <h1 class="title has-text-centered has-text-primary">SketchDraw 🖍️</h1>
+    </div>
+
+    <div class="is-block is-flex is-justify-content-center" id="word-display">
+      <div class="rows">
+        <div class="title ls-3" id="guessDrawTitle">Guess the word!</div>
+        <hr />
+        <div class="subtitle ls-5 has-text-centered" id="guessWord">
+          ___ ___ ___ ‎ C ‎ ___ ___
+        </div>
+      </div>
+    </div>
+
+    <section
+      class="section is-flex is-justify-content-center"
+      style="height: 100vh"
+    >
+      <div class="columns">
+        <div class="column" style="overflow: hidden">
+          <div class="box is-fullwidth">
+            <h1 class="title has-text-centered has-text-primary">
+              Time left :
+              <span class="is-absolute is-inline" id="timer">🤔</span>
+            </h1>
+          </div>
+
+          <div
+            class="box is-fullwidth"
+            style="height: 510px; overflow-y: scroll"
+          >
+            <div class="player-card currently-drawing">
+              <div class="player-avatar avatar-1">A</div>
+              <div class="player-info">
+                <div class="player-name">Player Name (Drawing)</div>
+                <div class="player-score">10 pts</div>
+              </div>
+            </div>
+
+            <div class="player-card">
+              <div class="player-avatar avatar-2">B</div>
+              <div class="player-info">
+                <div class="player-name">Player Name</div>
+                <div class="player-score">10 pts</div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="button is-danger has-text-white is-fullwidth has-text-weight-bold"
+            id="leaveGame"
+          >
+            Leave Game
+          </button>
+        </div>
+
+        <div class="column">
+          <div class="canvas-container">
+            <canvas id="drawing-canvas" width="900" height="600"></canvas>
+          </div>
+
+          <div
+            class="tools-container is-flex is-justify-content-space-between pt-4 is-spaced"
+          >
+            <div>
+              <div class="brush-size">
+                <span class="tag is-warning is-large">
+                  Brush Size : ‎<br />
+                  <span id="size-display" class="has-text-weight-bold"
+                    >5px</span
+                  >
+                </span>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  value="5"
+                  class="slider"
+                  id="brush-size"
+                />
+              </div>
+            </div>
+
+            <div
+              class="color-picker has-text-right is-flex is-justify-content-space-between"
+            >
+              <div
+                class="color-option selected"
+                style="background-color: black"
+                data-color="black"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: red"
+                data-color="red"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: blue"
+                data-color="blue"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: green"
+                data-color="green"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: yellow"
+                data-color="yellow"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: purple"
+                data-color="purple"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: orange"
+                data-color="orange"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: brown"
+                data-color="brown"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: pink"
+                data-color="pink"
+              ></div>
+              <div
+                class="color-option"
+                style="background-color: white"
+                data-color="white"
+              ></div>
+            </div>
+
+            <div>
+              <button class="button is-info" id="clear-canvas">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="column" style="height: 530px; width: 400px">
+          <h1 class="has-text-info subtitle is-3">Chat</h1>
+          <div class="box is-fullwidth" style="height: 530px">
+            <div class="chat-section is-fullheight" style="height: 530px">
+              <div class="chat-messages" id="chat-messages">
+                <div class="chat-message">
+                  <div class="chat-author ls-size-5 chat-header-1" >Senuka {You}</div>
+                  <div class="chat-body">Is it a chocolate?</div>
+                </div>
+
+                <div class="chat-message">
+                  <div class="chat-author ls-size-5 chat-header-2" >Kamal</div>
+                  <div class="chat-body">Chocolate!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-container">
+            <div class="field">
+              <div class="control">
+                <input
+                  class="input chat-input is-info"
+                  type="text"
+                  placeholder="Type your guess here..."
+                  id="chat-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
 </html>

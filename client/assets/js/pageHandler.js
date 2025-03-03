@@ -4,13 +4,12 @@ export class PageHandler {
 
     static loadContent(page) {
 
-        page = `/pages/${page}.html`;
 
-        fetch(page)
+        fetch(`/pages/${page}.html`)
             .then(response => response.text())
             .then(data => {
                 document.getElementById('root').innerHTML = data;
-                init();
+                init(page);
 
             })
             .catch(error => {
