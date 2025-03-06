@@ -5,21 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SketchDraw</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+
 </head>
 
 <body>
 
     <div id="root"><h1 class="title">Loading...</h1></div>    
 
-    <script src="assets/js/pageHandler.js"></script>
-    <script>
-           // Function to load external HTML content into the #root div
-        PageHandler.loadContent('pages/init.html');
-        console.log("HGeloo");
-        
+    
+    <script type="module">
+        import {PageHandler} from "./assets/js/pageHandler.js";
+        PageHandler.loadContent('canvas'); 
+
     </script>
 
-
+    
 </body>
 
 </html>

@@ -1,0 +1,151 @@
+.color-picker {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 5px;
+}
+
+.color-option {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #ddd;
+}
+
+.canvas-container {
+  position: relative;
+  padding: 4px;
+  border-radius: 8px;
+  background: linear-gradient(
+    45deg,
+    #ff00cc,
+    #ff9500,
+    #33ff00,
+    #00ffff,
+    #0066ff,
+    #cc00ff
+  );
+  background-size: 400% 400%;
+  animation: gradientBorder 10s ease infinite;
+}
+
+@keyframes gradientBorder {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.chat-message {
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+.chat-input-container {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+}
+.chat-input {
+  width: 100%;
+}
+
+.word-display {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+  letter-spacing: 4px;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+.player-avatar {
+  width: 40px;
+  height: 40px;
+  color: white;
+  border-radius: 50%;
+  background-color: #ffffff;
+  margin-right: 10px;
+  text-align: center;
+  line-height: 40px;
+  font-weight: bold;
+}
+.player-info {
+  flex: 1;
+}
+.player-name {
+  font-weight: bold;
+}
+.player-score {
+  font-size: 0.9em;
+  color: #00ff9d;
+}
+.currently-drawing {
+  background-color: #830158;
+}
+
+.avatar-1 {
+  background-color: #ff5722;
+}
+.avatar-2 {
+  background-color: #2196f3;
+}
+.avatar-3 {
+  background-color: #4caf50;
+}
+.avatar-4 {
+  background-color: #9c27b0;
+}
+.avatar-5 {
+  background-color: #ffc107;
+}
+
+.chat-header-1 {
+  background-color: #ff562280;
+}
+.chat-header-2 {
+  background-color: #2195f34b;
+}
+.chat-header-3 {
+  background-color: #4caf4f65;
+}
+.chat-header-4 {
+  background-color: #9b27b05b;
+}
+.chat-header-5 {
+  background-color: #ffc10765;
+}
+
+.chat-message {
+  border-radius: 14px;
+  border: 1px solid #00ffff5d;
+  margin-bottom: 20px;
+}
+
+.chat-author {
+  padding: 1px;
+  font-weight: 300;
+  padding-left: 5px;
+  color: white;
+  font-weight: bolder;
+}
+
+.chat-body {
+  padding: 10px;
+}
