@@ -45,20 +45,16 @@ app.post("/create-room", (req, res) => {
     res.send({ roomCode });
 });
 
-app.post("/join-room", (req, res) => {
-    const { roomCode, user } = req.body;
-
-    if (!rooms[roomCode]) {
-        return res.send(null); // Room not found
-    }
-
-    res.send({ roomCode });
-});
 
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
 
     socket.on("join-room", (roomCode) => {
+        if (!rooms[roomCode]) {
+            socket.emit("error", 404);
+            return;
+        }
+
         socket.join(roomCode);
         users[socket.id] = roomCode;
 

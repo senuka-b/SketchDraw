@@ -2,14 +2,14 @@
 import { init } from "./script.js";
 export class PageHandler {
 
-    static loadContent(page) {
+    static loadContent(page, room) {
 
 
         fetch(`/pages/${page}.html`)
             .then(response => response.text())
             .then(data => {
                 document.getElementById('root').innerHTML = data;
-                init(page);
+                init(page, room);
 
             })
             .catch(error => {

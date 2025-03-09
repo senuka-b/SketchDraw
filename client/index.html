@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SketchDraw</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
+    />
+  </head>
 
-</head>
+  <body>
+    <div id="root"><h1 class="title">Loading...</h1></div>
 
-<body>
+    <script
+      src="https://cdn.socket.io/4.8.1/socket.io.min.js"
+      integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+"
+      crossorigin="anonymous"
+    ></script>
 
-    <div id="root"><h1 class="title">Loading...</h1></div>    
-
-    
     <script type="module">
-        import {PageHandler} from "./assets/js/pageHandler.js";
-        PageHandler.loadContent('canvas'); 
-
+      import { PageHandler } from "./assets/js/pageHandler.js";
+      PageHandler.loadContent("init");
     </script>
-
-    
-</body>
-
+  </body>
 </html>

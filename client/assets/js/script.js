@@ -2,7 +2,7 @@ import { PageHandler } from "./pageHandler.js ";
 
 
 let createRoomForm;
-let enterRoomCode;
+let enterRoomCodeForm;
 
 let canvas;
 let clearCanvasBtn;
@@ -19,29 +19,72 @@ let lastY = 0;
 let currentColor = 'black';
 let currentSize = 5;
 
-function init(page) {
+const socket = io();
 
+function initalizeSocketListeners() {
+    socket.on("user-joined", (data) => {
+        PageHandler.loadContent('canvas', data.roomCode);
+    });
+
+    socket.on("error", (code) => {
+        if (code === 404) {
+            alert('Room not found');
+        }
+    });
+
+}
+
+function init(page, room) {
+    initalizeSocketListeners();
 
     if (page === 'init') {
 
         // Room codes
         createRoomForm = document.querySelector('#createRoomForm');
-        enterRoomCode = document.querySelector('#roomCodeForm');
+        enterRoomCodeForm = document.querySelector('#roomCodeForm');
 
         createRoomForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const roomCode = document.querySelector('#createRoomForm input').value;
-            PageHandler.loadContent('canvas');
-            enterRoomCode.querySelector('input').value = roomCode;
+            const roomCode = document.querySelector('#textFieldCreateRoomCode').value;
+            console.log(roomCode);
+
+
+            fetch('/create-room', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ roomCode, user: socket.id })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data == null) {
+                        alert('Room code already exists');
+                        return;
+                    }
+
+                    socket.emit("join-room", data);
+
+                })
+                .catch(error => {
+                    console.error('Error creating room:', error);
+                });
+        });
+
+        enterRoomCodeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const roomCode = document.querySelector('#textFieldRoomCode').value;
+            socket.emit("join-room", roomCode);
         });
     }
 
     else if (page === 'canvas') {
-        console.log("Yes");
+        console.log(room);
+
+        document.getElementById('roomCode').innerHTML = room;
 
         setupDrawingArea();
     }
-
 
 
 }
