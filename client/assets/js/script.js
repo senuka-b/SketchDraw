@@ -21,15 +21,31 @@ let currentSize = 5;
 
 const socket = io();
 
+let sessionData = {
+    game: {
+        currentWord: null,
+        currentDrawer: null,
+        isActive: false,
+        users: []
+    },
+    username: null,
+    color: 0,
+    score: 0,
+};
+
 function initalizeSocketListeners() {
     socket.on("user-joined", (data) => {
-        PageHandler.loadContent('canvas', data.roomCode);
+        PageHandler.loadContent('canvas', data);
     });
 
     socket.on("error", (code) => {
         if (code === 404) {
             alert('Room not found');
         }
+    });
+
+    socket.on("game-started", (gameData) => {
+
     });
 
 }
@@ -46,8 +62,6 @@ function init(page, room) {
         createRoomForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const roomCode = document.querySelector('#textFieldCreateRoomCode').value;
-            console.log(roomCode);
-
 
             fetch('/create-room', {
                 method: 'POST',
@@ -58,12 +72,12 @@ function init(page, room) {
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data == null) {
-                        alert('Room code already exists');
+                    if (data["error"]) {
+                        alert(data.error);
                         return;
                     }
 
-                    socket.emit("join-room", data);
+                    socket.emit("join-room", data, true);
 
                 })
                 .catch(error => {
@@ -74,17 +88,44 @@ function init(page, room) {
         enterRoomCodeForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const roomCode = document.querySelector('#textFieldRoomCode').value;
-            socket.emit("join-room", roomCode);
+            socket.emit("join-room", { roomCode });
         });
     }
 
     else if (page === 'canvas') {
-        console.log(room);
+        console.log('room data', room);
 
-        document.getElementById('roomCode').innerHTML = room;
+        document.getElementById('roomCode').innerHTML = room.roomCode;
+
+        if (!sessionData.username) {
+            sessionData.username = room.username;
+        }
+
+        sessionData.game.users = room.users;
 
         setupDrawingArea();
+        renderUsers();
     }
+
+
+}
+
+function renderUsers() {
+    const usersContainer = document.getElementById('user-container');
+    usersContainer.innerHTML = '';
+    sessionData.game.users.forEach(user => {
+        usersContainer.innerHTML += `
+            <div class="player-card currently-drawing">
+                <div class="player-avatar avatar-1">${user.username[0]}</div>
+                <div class="player-info">
+                    <div class="player-name">${user.username} ${user.username === sessionData.username ? '(You)' : ''}</div>
+                    <div class="player-score">${user.points}</div>
+                </div>
+            </div>
+            
+    `;
+    });
+
 
 
 }
