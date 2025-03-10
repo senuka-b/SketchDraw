@@ -75,9 +75,31 @@ app.post("/create-room", (req, res) => {
 
 
 io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
+    console.log("[USER CONNECT] A user connected:", socket.id);
 
-    socket.on("join-room", (roomCode, isSelf = false) => {
+    socket.on("leave-room", () => {
+        console.log("[LEAVE ROOM] User " + JSON.stringify(users[socket.id]));
+
+        const roomCode = users[socket.id].roomCode;
+        
+        if (roomCode) {
+            const { [socket.id]: _, ...rest } = users;
+            users = rest;
+            
+            io.to(roomCode).emit("user-left", {users: Object.values(users)});
+            socket.leave(roomCode);
+
+            if (!io.sockets.adapter.rooms.get(roomCode)) {
+                const { [roomCode]: _, ...rest } = rooms;
+                rooms = rest;
+                console.log(`Room ${roomCode} deleted`);
+            }
+        }
+
+
+    });
+
+    socket.on("join-room", (roomCode) => {
         roomCode = roomCode.roomCode;
 
         console.log("Joining room: " + roomCode);
@@ -98,7 +120,7 @@ io.on("connection", (socket) => {
         console.log(`${socket.id} joined room ${roomCode} with username ${username}`);
 
         io.to(roomCode).emit("user-joined", {
-            username, roomCode, score: 0, isSelf, users: Object.values(users)
+            username, roomCode, score: 0, users: Object.values(users)
                 .filter(user => user.roomCode === roomCode)
         });
 
@@ -128,6 +150,11 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         console.log("A user disconnected:", socket.id);
+        console.log("[USER DISCONNECT] Users: " + JSON.stringify(users));
+        
+        if (!users[socket.id]) {
+            return;
+        }
 
         const roomCode = users[socket.id].roomCode;
         if (roomCode) {
@@ -135,13 +162,16 @@ io.on("connection", (socket) => {
             const { [socket.id]: _, ...rest } = users;
             users = rest;
 
-            // Check if room is empty
-            if (io.sockets.adapter.rooms.get(roomCode)?.size === 0) {
+            // TODO: Fix
+            // Check if room is empty 
+            if (!io.sockets.adapter.rooms.get(roomCode)) {
                 const { [roomCode]: _, ...rest } = rooms;
                 rooms = rest;
                 console.log(`Room ${roomCode} deleted`);
             }
         }
+
+        io.to(roomCode).emit("user-left", Object.values(users));
     });
 });
 
