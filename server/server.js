@@ -82,11 +82,16 @@ io.on("connection", (socket) => {
 
     function nextRound(roomCode) {
 
-        // if (rooms[roomCode].gameData.round === getUsernamesInRoom(roomCode).length) {
-        //     console.log("GAME OVER");
+        if (rooms[roomCode].gameData.round === getUsernamesInRoom(roomCode).length) {
+            console.log("GAME OVER");
 
-        //     return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
-        // }
+            socket.leave(roomCode);
+            const { [roomCode]: _, ...rest } = rooms;
+            rooms = rest;
+
+
+            return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
+        }
 
 
         rooms[roomCode].gameData.timer = 60;
@@ -212,7 +217,7 @@ io.on("connection", (socket) => {
     socket.on("draw", (data) => {
         data["username"] = users[socket.id]?.username;
 
-        const roomCode = users[socket.id].roomCode;
+        const roomCode = users[socket.id]?.roomCode;
         if (roomCode) {
             io.to(roomCode).emit("draw", data);
         }
@@ -220,6 +225,7 @@ io.on("connection", (socket) => {
 
     socket.on("drawing-status", (data) => {
         const roomCode = users[socket.id]?.roomCode;
+        data.username = users[socket.id]?.username;
         if (roomCode) {
             io.to(roomCode).emit("drawing-status", data);
         }

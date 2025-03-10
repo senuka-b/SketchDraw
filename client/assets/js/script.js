@@ -147,7 +147,7 @@ function initalizeSocketListeners() {
     });
 
     socket.on("round-over", (data) => {
-        showAlert('Round ended! Going to the next round!');
+        showAlert('Round ended! The word was ' + sessionData.game.currentWord + '. Going to the next round!');
 
         console.log(data);
 
@@ -159,7 +159,7 @@ function initalizeSocketListeners() {
     });
 
     socket.on("game-over", (data) => {
-        showAlert("Game over! Scores are as follows: ", JSON.stringify(sessionData.game.users.map((user) => `${user.username}: ${user.score}`)));
+        showAlert("Game over! Scores are as follows: " + JSON.stringify(sessionData.game.users.map((user) => `${user.username}: ${user.score}`)));
         PageHandler.loadContent('init');
 
     });
@@ -180,6 +180,11 @@ function initalizeSocketListeners() {
     });
 
     socket.on("drawing-status", (data) => {
+        console.log("Drawing status data : ", data);
+
+
+        if (data.username === sessionData.username) return;
+
         if (data.clearCanvas) return clearCanvas();
 
         isDrawing = data.isDrawing;
@@ -357,13 +362,13 @@ function toggleToolBarVisibility() {
     toolsContainer = document.getElementById('tool-container');
 
     console.log("tools container " + toolsContainer);
+    setupCanvas();
 
     if (sessionData.username === sessionData.game.currentDrawer) {
         console.log("is current drawer!");
 
         chatInput.readOnly = true;
 
-        setupCanvas();
         enablecanvas();
 
         Array.from(toolsContainer.children).forEach(tool => {
