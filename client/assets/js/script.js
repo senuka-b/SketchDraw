@@ -159,7 +159,7 @@ function initalizeSocketListeners() {
     });
 
     socket.on("game-over", (data) => {
-        showAlert("Game over! Scores are as follows: " + JSON.stringify(sessionData.game.users.map((user) => `${user.username}: ${user.score}`)));
+        showAlert("Game over! Scores are as follows: " + JsessionData.game.users.map((user) => `${user.username}: ${user.score} points`).join("\n"));
         PageHandler.loadContent('init');
 
     });
