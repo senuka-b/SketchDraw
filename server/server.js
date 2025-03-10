@@ -82,11 +82,11 @@ io.on("connection", (socket) => {
 
     function nextRound(roomCode) {
 
-        if (rooms[roomCode].gameData.round === getUsernamesInRoom(roomCode).length) {
-            console.log("GAME OVER");
+        // if (rooms[roomCode].gameData.round === getUsernamesInRoom(roomCode).length) {
+        //     console.log("GAME OVER");
 
-            return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
-        }
+        //     return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
+        // }
 
 
         rooms[roomCode].gameData.timer = 60;

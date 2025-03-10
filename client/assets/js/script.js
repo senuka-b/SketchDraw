@@ -40,6 +40,13 @@ let sessionData = {
     score: 0,
 };
 
+function showAlert(message) {
+    Swal.fire({
+        title: 'SketchDraw :)',
+        text: message,
+        icon: 'info',
+    })
+}
 
 
 function initalizeSocketListeners() {
@@ -85,7 +92,7 @@ function initalizeSocketListeners() {
 
     socket.on("error", (code) => {
         if (code === 404) {
-            alert('Room not found');
+            showAlert('Room not found');
         }
     });
 
@@ -116,7 +123,7 @@ function initalizeSocketListeners() {
                 `;
             }
 
-            alert("You have guessed the word!");
+            showAlert("You have guessed the word!");
 
         }
 
@@ -140,7 +147,7 @@ function initalizeSocketListeners() {
     });
 
     socket.on("round-over", (data) => {
-        alert('Round ended! Going to the next round!');
+        showAlert('Round ended! Going to the next round!');
 
         console.log(data);
 
@@ -152,7 +159,7 @@ function initalizeSocketListeners() {
     });
 
     socket.on("game-over", (data) => {
-        alert("Game over! Scores are as follows: ", JSON.stringify(sessionData.game.users.map((user) => `${user.username}: ${user.score}`)));
+        showAlert("Game over! Scores are as follows: ", JSON.stringify(sessionData.game.users.map((user) => `${user.username}: ${user.score}`)));
         PageHandler.loadContent('init');
 
     });
@@ -166,6 +173,8 @@ function initalizeSocketListeners() {
     socket.on("draw", (data) => {
 
         if (data.username === sessionData.username) return;
+
+        console.log("drawing - yes");
 
         drawOnCanvas(data.x, data.y, data.color, data.size);
     });
@@ -254,7 +263,7 @@ function init(page, room) {
                 .then(response => response.json())
                 .then(data => {
                     if (data["error"]) {
-                        alert(data.error);
+                        showAlert(data.error);
                         return;
                     }
 
@@ -354,10 +363,12 @@ function toggleToolBarVisibility() {
 
         chatInput.readOnly = true;
 
+        setupCanvas();
+        enablecanvas();
+
         Array.from(toolsContainer.children).forEach(tool => {
             tool.classList.remove('hidden');
             toggleColorPickerVisibility(false);
-            enablecanvas();
 
         });
     } else {
@@ -394,8 +405,6 @@ function setupCanvas() {
 
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    enablecanvas();
 
     clearCanvasBtn.addEventListener('click', clearCanvas);
 }
