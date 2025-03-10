@@ -43,6 +43,10 @@
   }
 }
 
+.chat-container {
+  overflow-y: scroll;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -148,4 +152,8 @@
 
 .chat-body {
   padding: 10px;
+}
+
+.hidden {
+  display: none;
 }

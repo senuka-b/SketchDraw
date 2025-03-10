@@ -16,15 +16,17 @@
     <div
       class="box is-fullwidth is-flex is-justify-content-center is-align-items-center is-flex-direction-column"
     >
-      <h1 class="title has-text-centered has-text-primary">SketchDraw 🖍️</h1>
+      <h1 class="title has-text-centered has-text-primary">
+        SketchDraw 🖍️ - [<span id="roomCode"></span>]
+      </h1>
     </div>
 
     <div class="is-block is-flex is-justify-content-center" id="word-display">
       <div class="rows">
         <div class="title ls-3" id="guessDrawTitle">Guess the word!</div>
         <hr />
-        <div class="subtitle ls-5 has-text-centered" id="guessWord">
-          ___ ___ ___ ‎ C ‎ ___ ___
+        <div class="subtitle ls-5 has-text-centered" id="guess-word">
+          waiting for the game to start....
         </div>
       </div>
     </div>
@@ -43,28 +45,14 @@
           </div>
 
           <div
+            id="user-container"
             class="box is-fullwidth"
             style="height: 510px; overflow-y: scroll"
-          >
-            <div class="player-card currently-drawing">
-              <div class="player-avatar avatar-1">A</div>
-              <div class="player-info">
-                <div class="player-name">Player Name (Drawing)</div>
-                <div class="player-score">10 pts</div>
-              </div>
-            </div>
+          ></div>
 
-            <div class="player-card">
-              <div class="player-avatar avatar-2">B</div>
-              <div class="player-info">
-                <div class="player-name">Player Name</div>
-                <div class="player-score">10 pts</div>
-              </div>
-            </div>
-          </div>
           <button
             class="button is-danger has-text-white is-fullwidth has-text-weight-bold"
-            id="leaveGame"
+            id="leave-game"
           >
             Leave Game
           </button>
@@ -76,9 +64,10 @@
           </div>
 
           <div
+            id="tool-container"
             class="tools-container is-flex is-justify-content-space-between pt-4 is-spaced"
           >
-            <div>
+            <div class="hidden">
               <div class="brush-size">
                 <span class="tag is-warning is-large">
                   Brush Size : ‎<br />
@@ -98,61 +87,61 @@
             </div>
 
             <div
-              class="color-picker has-text-right is-flex is-justify-content-space-between"
+              class="color-picker has-text-right is-flex is-justify-content-space-between hidden"
             >
               <div
-                class="color-option selected"
+                class="color-option selected hidden"
                 style="background-color: black"
                 data-color="black"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: red"
                 data-color="red"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: blue"
                 data-color="blue"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: green"
                 data-color="green"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: yellow"
                 data-color="yellow"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: purple"
                 data-color="purple"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: orange"
                 data-color="orange"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: brown"
                 data-color="brown"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: pink"
                 data-color="pink"
               ></div>
               <div
-                class="color-option"
+                class="color-option hidden"
                 style="background-color: white"
                 data-color="white"
               ></div>
             </div>
 
-            <div>
+            <div class="hidden">
               <button class="button is-info" id="clear-canvas">Clear</button>
             </div>
           </div>
@@ -160,18 +149,13 @@
 
         <div class="column" style="height: 530px; width: 400px">
           <h1 class="has-text-info subtitle is-3">Chat</h1>
-          <div class="box is-fullwidth" style="height: 530px">
+          <div
+            class="box is-fullwidth"
+            style="height: 530px; overflow-y: scroll"
+          >
             <div class="chat-section is-fullheight" style="height: 530px">
               <div class="chat-messages" id="chat-messages">
-                <div class="chat-message">
-                  <div class="chat-author ls-size-5 chat-header-1" >Senuka {You}</div>
-                  <div class="chat-body">Is it a chocolate?</div>
-                </div>
-
-                <div class="chat-message">
-                  <div class="chat-author ls-size-5 chat-header-2" >Kamal</div>
-                  <div class="chat-body">Chocolate!</div>
-                </div>
+                <!-- CHAT MESSAGES GO HERE -->
               </div>
             </div>
           </div>
