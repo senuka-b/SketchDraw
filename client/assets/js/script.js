@@ -4,6 +4,8 @@ import { PageHandler } from "./pageHandler.js ";
 let createRoomForm;
 let enterRoomCodeForm;
 
+let leaveGameBtn;
+
 let canvas;
 let clearCanvasBtn;
 let brushSizeSlider;
@@ -35,6 +37,15 @@ let sessionData = {
 
 function initalizeSocketListeners() {
     socket.on("user-joined", (data) => {
+        PageHandler.loadContent('canvas', data);
+    });
+
+    socket.on("user-left", (data) => {
+        if (!(data.users.map((user) => user.username).includes(sessionData.username))) {
+            PageHandler.loadContent('init');
+            return;
+        }
+
         PageHandler.loadContent('canvas', data);
     });
 
@@ -77,7 +88,7 @@ function init(page, room) {
                         return;
                     }
 
-                    socket.emit("join-room", data, true);
+                    socket.emit("join-room", data);
 
                 })
                 .catch(error => {
@@ -95,10 +106,16 @@ function init(page, room) {
     else if (page === 'canvas') {
         console.log('room data', room);
 
+        leaveGameBtn = document.getElementById('leaveGame');
+        leaveGameBtn.addEventListener('click', () => {
+            socket.emit("leave-room");
+        })
+
         document.getElementById('roomCode').innerHTML = room.roomCode;
 
         if (!sessionData.username) {
             sessionData.username = room.username;
+            sessionData.color = Math.floor(Math.random() * 5) + 1;
         }
 
         sessionData.game.users = room.users;
@@ -115,8 +132,8 @@ function renderUsers() {
     usersContainer.innerHTML = '';
     sessionData.game.users.forEach(user => {
         usersContainer.innerHTML += `
-            <div class="player-card currently-drawing">
-                <div class="player-avatar avatar-1">${user.username[0]}</div>
+            <div class="player-card">
+                <div class="player-avatar avatar-${sessionData.color}">${user.username[0]}</div>
                 <div class="player-info">
                     <div class="player-name">${user.username} ${user.username === sessionData.username ? '(You)' : ''}</div>
                     <div class="player-score">${user.points}</div>
