@@ -42,16 +42,16 @@ const getUsernamesInRoom = (roomCode) => {
 };
 
 // TESTING
-rooms["test"] = {
-    gameData: {
-        drew: [],
-        currentWord: null,
-        currentDrawer: null,
-        round: 0,
-        timer: 60,
-        isActive: false
-    }
-}
+// rooms["test"] = {
+//     gameData: {
+//         drew: [],
+//         currentWord: null,
+//         currentDrawer: null,
+//         round: 0,
+//         timer: 60,
+//         isActive: false
+//     }
+// }
 
 app.post("/create-room", (req, res) => {
     const { roomCode, user } = req.body;
@@ -82,7 +82,7 @@ io.on("connection", (socket) => {
 
     function nextRound(roomCode) {
 
-        if (rooms[roomCode].gameData.round + 1 === getUsernamesInRoom(roomCode).length) {
+        if (rooms[roomCode].gameData.round === getUsernamesInRoom(roomCode).length) {
             console.log("GAME OVER");
 
             return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
