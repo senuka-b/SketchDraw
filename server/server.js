@@ -142,9 +142,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on("draw", (data) => {
-        const roomCode = users[socket.id];
+
+        const roomCode = users[socket.id].roomCode;
         if (roomCode) {
-            socket.to(roomCode).emit("draw", data);
+            io.to(roomCode).emit("draw", data);
+        }
+    });
+
+    socket.on("drawing-status", (data) => {
+        const roomCode = users[socket.id].roomCode;
+        if (roomCode) {
+            io.to(roomCode).emit("drawing-status", data);
         }
     });
 

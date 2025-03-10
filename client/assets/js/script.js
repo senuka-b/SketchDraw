@@ -70,7 +70,7 @@ function initalizeSocketListeners() {
             return;
         }
 
-        PageHandler.loadContent('canvas', data);
+        renderUsers();
     });
 
     socket.on("error", (code) => {
@@ -85,9 +85,24 @@ function initalizeSocketListeners() {
 
     socket.on("message", (data) => {
         console.log("Message received:", data);
-        console.log("Active socket listeners:", socket.listeners("message"));
 
         renderMessage(data.message, data.username);
+    });
+
+    socket.on("draw", (data) => {
+        console.log("Draw received:", data);
+        drawOnCanvas(data.x, data.y, data.color, data.size);
+    });
+
+    socket.on("drawing-status", (data) => {
+        if (data.clearCanvas) return clearCanvas();
+
+        isDrawing = data.isDrawing;
+
+        if (data.lastX && data.lastY) {
+            lastX = data.lastX;
+            lastY = data.lastY;
+        }
     });
 
 }
@@ -166,9 +181,6 @@ function init(page, room) {
 
 }
 
-function renderOldMessages() {
-    chatContainer.innerHTML = sessionData.messageHTML;
-}
 
 function renderMessage(message, username) {
     chatContainer.innerHTML +=
@@ -229,6 +241,8 @@ function startDrawing(e) {
     const rect = canvas.getBoundingClientRect();
     lastX = e.clientX - rect.left;
     lastY = e.clientY - rect.top;
+
+    socket.emit("drawing-status", { isDrawing, lastX, lastY });
 }
 
 function draw(e) {
@@ -249,15 +263,37 @@ function draw(e) {
 
     lastX = currentX;
     lastY = currentY;
+
+    socket.emit('draw', { x: currentX, y: currentY, color: currentColor, size: currentSize });
+}
+
+function drawOnCanvas(x, y, color = "black", size = 2) {
+    if (!isDrawing) return;
+
+    ctx.lineWidth = size;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = color;
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    lastX = x;
+    lastY = y;
+
 }
 
 function stopDrawing() {
     isDrawing = false;
+    socket.emit("drawing-status", { isDrawing });
 }
 
 function clearCanvas() {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    socket.emit("drawing-status", { clearCanvas: true });
 }
 
 function setupColorPicker() {
