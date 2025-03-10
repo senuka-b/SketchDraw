@@ -11,7 +11,7 @@ app.use(express.static("../client"));
 app.use(express.json());
 
 /* SCHEMA
-users = { socketID: {roomCode: roomCode, username: username, score: 0}, ... }
+users = { socketID: {roomCode: roomCode, username: username, score: 0, guessed: false, color: 0}, ... }
 
 rooms = {
     roomCode: {
@@ -22,6 +22,11 @@ rooms = {
         }
     }
 }
+
+messages =  {roomCode: {
+    username: username,
+    message: message
+}, ...}
 */
 
 let users = {};
@@ -81,12 +86,12 @@ io.on("connection", (socket) => {
         console.log("[LEAVE ROOM] User " + JSON.stringify(users[socket.id]));
 
         const roomCode = users[socket.id].roomCode;
-        
+
         if (roomCode) {
             const { [socket.id]: _, ...rest } = users;
             users = rest;
-            
-            io.to(roomCode).emit("user-left", {users: Object.values(users)});
+
+            io.to(roomCode).emit("user-left", { users: Object.values(users) });
             socket.leave(roomCode);
 
             if (!io.sockets.adapter.rooms.get(roomCode)) {
@@ -114,13 +119,15 @@ io.on("connection", (socket) => {
             username = generateUsername(); // Generate a unique username for the user
         }
 
+        let color = Math.floor(Math.random() * 5) + 1;
+
         socket.join(roomCode);
-        users[socket.id] = { roomCode, username, score: 0 };
+        users[socket.id] = { roomCode, username, guessed: false, score: 0, color };
 
         console.log(`${socket.id} joined room ${roomCode} with username ${username}`);
 
         io.to(roomCode).emit("user-joined", {
-            username, roomCode, score: 0, users: Object.values(users)
+            username, roomCode, color, score: 0, guessed: false, users: Object.values(users)
                 .filter(user => user.roomCode === roomCode)
         });
 
@@ -142,36 +149,38 @@ io.on("connection", (socket) => {
     });
 
     socket.on("chat", (message) => {
-        const roomCode = users[socket.id];
-        if (roomCode) {
-            io.to(roomCode).emit("chat", message);
+        const room = users[socket.id];
+
+        console.log("[Message Recieved] ", message, room);
+
+        if (room) {
+            io.to(room.roomCode).emit("message", { message, username: users[socket.id].username });
         }
     });
 
     socket.on("disconnect", () => {
         console.log("A user disconnected:", socket.id);
         console.log("[USER DISCONNECT] Users: " + JSON.stringify(users));
-        
+
         if (!users[socket.id]) {
             return;
         }
 
         const roomCode = users[socket.id].roomCode;
+
         if (roomCode) {
-            socket.leave(roomCode);
             const { [socket.id]: _, ...rest } = users;
             users = rest;
 
-            // TODO: Fix
-            // Check if room is empty 
+            io.to(roomCode).emit("user-left", { users: Object.values(users) });
+            socket.leave(roomCode);
+
             if (!io.sockets.adapter.rooms.get(roomCode)) {
                 const { [roomCode]: _, ...rest } = rooms;
                 rooms = rest;
                 console.log(`Room ${roomCode} deleted`);
             }
         }
-
-        io.to(roomCode).emit("user-left", Object.values(users));
     });
 });
 

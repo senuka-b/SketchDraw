@@ -5,11 +5,12 @@ let createRoomForm;
 let enterRoomCodeForm;
 
 let leaveGameBtn;
-
 let canvas;
 let clearCanvasBtn;
 let brushSizeSlider;
 let timerElement;
+let chatInput;
+let chatContainer;
 
 let gameTime = 60;
 let timerInterval;
@@ -30,18 +31,41 @@ let sessionData = {
         isActive: false,
         users: []
     },
+    guessed: false,
     username: null,
-    color: 0,
     score: 0,
 };
 
 function initalizeSocketListeners() {
     socket.on("user-joined", (data) => {
-        PageHandler.loadContent('canvas', data);
+
+        sessionData.game.users = data.users;
+
+        if (!sessionData.username) { // New user
+
+            PageHandler.loadContent('canvas', data);
+        } else { // Old user
+            renderUsers();
+        }
+
     });
 
     socket.on("user-left", (data) => {
         if (!(data.users.map((user) => user.username).includes(sessionData.username))) {
+            sessionData = {
+                game: {
+                    currentWord: null,
+                    currentDrawer: null,
+                    isActive: false,
+                    users: []
+                },
+                guessed: false,
+                username: null,
+                color: 0,
+                score: 0,
+                messages: []
+            };
+
             PageHandler.loadContent('init');
             return;
         }
@@ -59,10 +83,18 @@ function initalizeSocketListeners() {
 
     });
 
+    socket.on("message", (data) => {
+        console.log("Message received:", data);
+        console.log("Active socket listeners:", socket.listeners("message"));
+
+        renderMessage(data.message, data.username);
+    });
+
 }
 
+initalizeSocketListeners();
+
 function init(page, room) {
-    initalizeSocketListeners();
 
     if (page === 'init') {
 
@@ -106,19 +138,26 @@ function init(page, room) {
     else if (page === 'canvas') {
         console.log('room data', room);
 
-        leaveGameBtn = document.getElementById('leaveGame');
+        console.log("New user");
+
+        sessionData.username = room.username;
+
+        leaveGameBtn = document.getElementById('leave-game');
+        chatInput = document.getElementById('chat-input');
+        chatContainer = document.getElementById('chat-messages');
+
         leaveGameBtn.addEventListener('click', () => {
             socket.emit("leave-room");
-        })
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                socket.emit("chat", e.target.value);
+                e.target.value = '';
+            }
+        });
 
         document.getElementById('roomCode').innerHTML = room.roomCode;
-
-        if (!sessionData.username) {
-            sessionData.username = room.username;
-            sessionData.color = Math.floor(Math.random() * 5) + 1;
-        }
-
-        sessionData.game.users = room.users;
 
         setupDrawingArea();
         renderUsers();
@@ -127,13 +166,27 @@ function init(page, room) {
 
 }
 
+function renderOldMessages() {
+    chatContainer.innerHTML = sessionData.messageHTML;
+}
+
+function renderMessage(message, username) {
+    chatContainer.innerHTML +=
+        `<div class="chat-message">
+            <div class="chat-author ls-size-5 chat-header-${sessionData.game.users.find(user => user.username === username).color}">${username}</div>
+            <div class="chat-body">${message}</div>
+        </div>`;
+}
+
 function renderUsers() {
     const usersContainer = document.getElementById('user-container');
     usersContainer.innerHTML = '';
     sessionData.game.users.forEach(user => {
         usersContainer.innerHTML += `
             <div class="player-card">
-                <div class="player-avatar avatar-${sessionData.color}">${user.username[0]}</div>
+                <div class="player-avatar avatar-${user.color}
+                    
+                    ">${user.username[0]}</div>
                 <div class="player-info">
                     <div class="player-name">${user.username} ${user.username === sessionData.username ? '(You)' : ''}</div>
                     <div class="player-score">${user.points}</div>
@@ -151,7 +204,7 @@ function setupDrawingArea() {
     setupCanvas();
     setupColorPicker();
     setupBrushSize();
-    startTimer();
+    // startTimer();
 }
 
 function setupCanvas() {
