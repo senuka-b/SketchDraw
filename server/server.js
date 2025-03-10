@@ -80,6 +80,39 @@ app.post("/create-room", (req, res) => {
 io.on("connection", (socket) => {
     console.log("[USER CONNECT] A user connected:", socket.id);
 
+    function nextRound(roomCode) {
+
+        if (rooms[roomCode].gameData.round + 1 === getUsernamesInRoom(roomCode).length) {
+            console.log("GAME OVER");
+
+            return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
+        }
+
+
+        rooms[roomCode].gameData.timer = 60;
+        rooms[roomCode].gameData.round++;
+        rooms[roomCode].gameData.drew.push(rooms[roomCode].gameData.currentDrawer);
+
+        rooms[roomCode].gameData.currentDrawer = random(getUsernamesInRoom(roomCode));
+        while (rooms[roomCode].gameData.drew.includes(
+            rooms[roomCode].gameData.currentDrawer
+        )) {
+            rooms[roomCode].gameData.currentDrawer = random(getUsernamesInRoom(roomCode)); // Unique drawer generation
+        }
+
+        Object.values(users).forEach((user) => {
+            user.guessed = false;
+        });
+
+
+        rooms[roomCode].gameData.currentWord = random(JSON.parse(fs.readFileSync("./word-list.json", "utf-8"))["words"]);
+
+        console.log("Game DATA", rooms[roomCode].gameData);
+
+        startTimer();
+        io.to(roomCode).emit("round-over", { gameData: rooms[roomCode].gameData, users: Object.values(users) });
+    }
+
     function startTimer() {
         const roomCode = users[socket.id]?.roomCode;
 
@@ -88,11 +121,27 @@ io.on("connection", (socket) => {
         let interval = setInterval(() => {
             if (!rooms[roomCode]) return;
 
+
+            let guessed = Object.values(users).filter((user) => user.guessed && user.roomCode === roomCode)
+
+            if (guessed.length === getUsernamesInRoom(roomCode).length - 1) {
+                console.log("Next round!");
+                clearInterval(interval);
+
+                nextRound(roomCode);
+                return;
+            }
+
+
+
             if (rooms[roomCode].gameData.timer > 0) {
                 rooms[roomCode].gameData.timer--;
                 io.to(roomCode).emit("timer", rooms[roomCode].gameData.timer);
             } else {
-                io.to(roomCode).emit("round-over");
+
+
+
+                nextRound(roomCode);
                 clearInterval(interval);
             }
         }, 1000);

@@ -40,6 +40,8 @@ let sessionData = {
     score: 0,
 };
 
+
+
 function initalizeSocketListeners() {
     socket.on("user-joined", (data) => {
 
@@ -93,38 +95,13 @@ function initalizeSocketListeners() {
         console.log("Game started ! ", sessionData.game);
 
 
-        function checkAndInitialize() {
-            const toolsContainer = document.getElementById('tool-container');
-            const guessWord = document.getElementById('guess-word');
-            if (toolsContainer && guessWord) {
-                toggleToolBarVisibility();
-                renderUsers();
-
-                guessWord.innerHTML = '';
-
-                let index = 0;
-                let random = Math.floor(Math.random() * sessionData.game.currentWord.length);
-                for (const char of sessionData.game.currentWord) {
-                    index++;
-                    guessWord.innerHTML += `
-                        <span class="pl-2 pr-2">${index === random ? char : '___'}</span>
-        
-                    `;
-                }
-
-
-            } else {
-                // Retry after a delay
-                setTimeout(checkAndInitialize, 100);
-            }
-        }
-
-        checkAndInitialize();
-
+        nextRound();
 
     });
 
     socket.on("guessed-word", (data) => {
+        console.log("Guessed word ", data);
+
         if (data.username === sessionData.username) {
             sessionData.guessed = true;
             chatInput.readOnly = true;
@@ -133,9 +110,8 @@ function initalizeSocketListeners() {
             guessWord.innerHTML = '';
 
             for (const char of sessionData.game.currentWord) {
-                index++;
                 guessWord.innerHTML += `
-                    <span class="pl-2 pr-2">${char}</span>
+                    <span class="pl-2 pr-2 is-uppercase">${char}</span>
     
                 `;
             }
@@ -163,10 +139,22 @@ function initalizeSocketListeners() {
         timerElement.textContent = timer + "s";
     });
 
-    socket.on("round-over", () => {
-        alert('Round ended!');
+    socket.on("round-over", (data) => {
+        alert('Round ended! Going to the next round!');
 
-        // TODO: Next player
+        console.log(data);
+
+        sessionData.game = { users: data.users, ...data.gameData };
+        console.log("Next round started ! ", sessionData.game);
+        renderUsers();
+        nextRound();
+
+    });
+
+    socket.on("game-over", (data) => {
+        alert("Game over! Scores are as follows: ", JSON.stringify(sessionData.game.users.map((user) => `${user.username}: ${user.score}`)));
+        PageHandler.loadContent('init');
+
     });
 
     socket.on("message", (data) => {
@@ -200,6 +188,49 @@ document.addEventListener('DOMContentLoaded', () => {
     initalizeSocketListeners();
 })
 
+function nextRound() {
+
+    sessionData.guessed = false;
+
+    console.log("Next round session data", sessionData);
+
+
+    function checkAndInitialize() {
+        const toolsContainer = document.getElementById('tool-container');
+        const guessWord = document.getElementById('guess-word');
+        if (toolsContainer && guessWord) {
+            toggleToolBarVisibility();
+            renderUsers();
+
+            guessWord.innerHTML = '';
+
+            let index = 0;
+            let random = Math.floor(Math.random() * sessionData.game.currentWord.length);
+            for (const char of sessionData.game.currentWord) {
+                index++;
+                if (sessionData.username === sessionData.game.currentDrawer) {
+                    guessWord.innerHTML += `
+                        <span class="pl-2 pr-2 is-uppercase">${char}</span>
+                    `;
+                } else {
+
+                    guessWord.innerHTML += `
+                        <span class="pl-2 pr-2">${index === random ? char : '___'}</span>
+        
+                    `;
+                }
+
+            }
+
+
+        } else {
+            // Retry after a delay
+            setTimeout(checkAndInitialize, 100);
+        }
+    }
+
+    checkAndInitialize();
+}
 
 function init(page, room) {
 
@@ -319,11 +350,14 @@ function toggleToolBarVisibility() {
     console.log("tools container " + toolsContainer);
 
     if (sessionData.username === sessionData.game.currentDrawer) {
-        ; console.log("is current drawer!");
+        console.log("is current drawer!");
+
+        chatInput.readOnly = true;
 
         Array.from(toolsContainer.children).forEach(tool => {
             tool.classList.remove('hidden');
             toggleColorPickerVisibility(false);
+            enablecanvas();
 
         });
     } else {
@@ -331,6 +365,8 @@ function toggleToolBarVisibility() {
             tool.classList.add('hidden');
             toggleColorPickerVisibility(true)
         });
+
+        chatInput.readOnly = false;
 
         console.log("HIDDEN USER");
         disableCanvas();
@@ -359,10 +395,7 @@ function setupCanvas() {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
+    enablecanvas();
 
     clearCanvasBtn.addEventListener('click', clearCanvas);
 }
@@ -375,6 +408,13 @@ function disableCanvas() {
 
 }
 
+function enablecanvas() {
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+
+}
 
 function startDrawing(e) {
     isDrawing = true;
@@ -461,35 +501,6 @@ function setupBrushSize() {
 }
 
 
-function startTimer() {
-
-    clearInterval(timerInterval);
-    gameTime = 60;
-    timerElement.textContent = gameTime;
-
-    timerInterval = setInterval(() => {
-        gameTime--;
-        timerElement.textContent = gameTime + "s";
-
-        if (gameTime <= 10) {
-            timerElement.style.color = '#f44336'; // Red
-        } else if (gameTime <= 30) {
-            timerElement.style.color = '#ff9800'; // Orange
-        } else {
-            timerElement.style.color = '#4caf50'; // Green
-        }
-
-        if (gameTime <= 0) {
-            clearInterval(timerInterval);
-            setTimeout(() => {
-                alert('Round ended!');
-
-                // TODO: Next player
-
-            }, 500);
-        }
-    }, 1000);
-}
 
 
 export { init };
