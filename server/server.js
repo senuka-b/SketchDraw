@@ -181,6 +181,16 @@ io.on("connection", (socket) => {
 
         console.log("[Message Recieved] ", message, room);
 
+        if (message.toLowerCase() === rooms[room.roomCode].gameData.currentWord.toLowerCase()) {
+            users[socket.id].score += 10;
+            users[socket.id].guessed = true;
+
+            io.to(room.roomCode).emit("guessed-word", { username: users[socket.id].username, users: Object.values(users) });
+            io.to(room.roomCode).emit("message", { message: "[🎉] Guessed the word! +10 points", username: users[socket.id].username });
+
+            return;
+        }
+
         if (room) {
             io.to(room.roomCode).emit("message", { message, username: users[socket.id].username });
         }

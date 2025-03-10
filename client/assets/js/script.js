@@ -95,9 +95,24 @@ function initalizeSocketListeners() {
 
         function checkAndInitialize() {
             const toolsContainer = document.getElementById('tool-container');
-            if (toolsContainer) {
+            const guessWord = document.getElementById('guess-word');
+            if (toolsContainer && guessWord) {
                 toggleToolBarVisibility();
                 renderUsers();
+
+                guessWord.innerHTML = '';
+
+                let index = 0;
+                let random = Math.floor(Math.random() * sessionData.game.currentWord.length);
+                for (const char of sessionData.game.currentWord) {
+                    index++;
+                    guessWord.innerHTML += `
+                        <span class="pl-2 pr-2">${index === random ? char : '___'}</span>
+        
+                    `;
+                }
+
+
             } else {
                 // Retry after a delay
                 setTimeout(checkAndInitialize, 100);
@@ -107,6 +122,30 @@ function initalizeSocketListeners() {
         checkAndInitialize();
 
 
+    });
+
+    socket.on("guessed-word", (data) => {
+        if (data.username === sessionData.username) {
+            sessionData.guessed = true;
+            chatInput.readOnly = true;
+
+            const guessWord = document.getElementById('guess-word');
+            guessWord.innerHTML = '';
+
+            for (const char of sessionData.game.currentWord) {
+                index++;
+                guessWord.innerHTML += `
+                    <span class="pl-2 pr-2">${char}</span>
+    
+                `;
+            }
+
+            alert("You have guessed the word!");
+
+        }
+
+        sessionData.game.users = data.users;
+        renderUsers();
     });
 
     socket.on("timer", (timer) => {
@@ -251,13 +290,11 @@ function renderUsers() {
     usersContainer.innerHTML = '';
     sessionData.game.users.forEach(user => {
         usersContainer.innerHTML += `
-            <div class="player-card">
-                <div class="player-avatar avatar-${user.color} 
-                    ${user.username === sessionData.game.currentDrawer ? 'currently-drawing' : ''}
-                    ">${user.username[0]}</div>
+            <div class="player-card ${user.username === sessionData.game.currentDrawer ? ' currently-drawing' : ''}">
+                <div class="player-avatar avatar-${user.color} ">${user.username[0]}</div>
                 <div class="player-info">
                     <div class="player-name">${user.username} ${user.username === sessionData.username ? '(You)' : ''}</div>
-                    <div class="player-score">${user.points}</div>
+                    <div class="player-score">${user.score} points</div>
                 </div>
             </div>
             
