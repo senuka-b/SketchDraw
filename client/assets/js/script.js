@@ -11,6 +11,7 @@ let brushSizeSlider;
 let timerElement;
 let chatInput;
 let chatContainer;
+let toolsContainer;
 
 let gameTime = 60;
 let timerInterval;
@@ -26,10 +27,13 @@ const socket = io();
 
 let sessionData = {
     game: {
+        drew: [],
         currentWord: null,
         currentDrawer: null,
-        isActive: false,
-        users: []
+        round: 1,
+        timer: 60,
+        users: [],
+        isActive: false
     },
     guessed: false,
     username: null,
@@ -55,9 +59,12 @@ function initalizeSocketListeners() {
             sessionData = {
                 game: {
                     currentWord: null,
+                    drew: [],
+                    currentWord: null,
                     currentDrawer: null,
-                    isActive: false,
-                    users: []
+                    round: 1,
+                    timer: 60,
+                    isActive: false
                 },
                 guessed: false,
                 username: null,
@@ -70,6 +77,7 @@ function initalizeSocketListeners() {
             return;
         }
 
+        sessionData.game.users = data.users;
         renderUsers();
     });
 
@@ -81,6 +89,45 @@ function initalizeSocketListeners() {
 
     socket.on("game-started", (gameData) => {
 
+        sessionData.game = { users: sessionData.game.users, ...gameData };
+        console.log("Game started ! ", sessionData.game);
+
+
+        function checkAndInitialize() {
+            const toolsContainer = document.getElementById('tool-container');
+            if (toolsContainer) {
+                toggleToolBarVisibility();
+                renderUsers();
+            } else {
+                // Retry after a delay
+                setTimeout(checkAndInitialize, 100);
+            }
+        }
+
+        checkAndInitialize();
+
+
+    });
+
+    socket.on("timer", (timer) => {
+        timerElement = document.getElementById('timer');;
+
+        if (timer <= 10) {
+            timerElement.style.color = '#f44336'; // Red
+        } else if (gameTime <= 30) {
+            timerElement.style.color = '#ff9800'; // Orange
+        } else {
+            timerElement.style.color = '#4caf50'; // Green
+        }
+
+
+        timerElement.textContent = timer + "s";
+    });
+
+    socket.on("round-over", () => {
+        alert('Round ended!');
+
+        // TODO: Next player
     });
 
     socket.on("message", (data) => {
@@ -90,7 +137,9 @@ function initalizeSocketListeners() {
     });
 
     socket.on("draw", (data) => {
-        console.log("Draw received:", data);
+
+        if (data.username === sessionData.username) return;
+
         drawOnCanvas(data.x, data.y, data.color, data.size);
     });
 
@@ -107,7 +156,11 @@ function initalizeSocketListeners() {
 
 }
 
-initalizeSocketListeners();
+
+document.addEventListener('DOMContentLoaded', () => {
+    initalizeSocketListeners();
+})
+
 
 function init(page, room) {
 
@@ -160,6 +213,9 @@ function init(page, room) {
         leaveGameBtn = document.getElementById('leave-game');
         chatInput = document.getElementById('chat-input');
         chatContainer = document.getElementById('chat-messages');
+        toolsContainer = document.getElementById('tool-container');
+
+        console.log("Load canvas : " + toolsContainer);
 
         leaveGameBtn.addEventListener('click', () => {
             socket.emit("leave-room");
@@ -196,8 +252,8 @@ function renderUsers() {
     sessionData.game.users.forEach(user => {
         usersContainer.innerHTML += `
             <div class="player-card">
-                <div class="player-avatar avatar-${user.color}
-                    
+                <div class="player-avatar avatar-${user.color} 
+                    ${user.username === sessionData.game.currentDrawer ? 'currently-drawing' : ''}
                     ">${user.username[0]}</div>
                 <div class="player-info">
                     <div class="player-name">${user.username} ${user.username === sessionData.username ? '(You)' : ''}</div>
@@ -213,13 +269,52 @@ function renderUsers() {
 }
 
 function setupDrawingArea() {
-    setupCanvas();
+    setupCanvas(true);
     setupColorPicker();
     setupBrushSize();
-    // startTimer();
+}
+
+function toggleToolBarVisibility() {
+
+
+    toolsContainer = document.getElementById('tool-container');
+
+    console.log("tools container " + toolsContainer);
+
+    if (sessionData.username === sessionData.game.currentDrawer) {
+        ; console.log("is current drawer!");
+
+        Array.from(toolsContainer.children).forEach(tool => {
+            tool.classList.remove('hidden');
+            toggleColorPickerVisibility(false);
+
+        });
+    } else {
+        Array.from(toolsContainer.children).forEach(tool => {
+            tool.classList.add('hidden');
+            toggleColorPickerVisibility(true)
+        });
+
+        console.log("HIDDEN USER");
+        disableCanvas();
+    }
+
+
+
+
+
+}
+
+function toggleColorPickerVisibility(add) {
+    const colorPicker = document.querySelector('.color-picker');
+    Array.from(colorPicker.children).forEach(tool => {
+        if (add) tool.classList.add('hidden');
+        else tool.classList.remove('hidden');
+    })
 }
 
 function setupCanvas() {
+
     canvas = document.getElementById('drawing-canvas');
     ctx = canvas.getContext('2d');
     clearCanvasBtn = document.getElementById('clear-canvas');
@@ -233,6 +328,14 @@ function setupCanvas() {
     canvas.addEventListener('mouseout', stopDrawing);
 
     clearCanvasBtn.addEventListener('click', clearCanvas);
+}
+
+function disableCanvas() {
+    canvas.removeEventListener('mousedown', startDrawing);
+    canvas.removeEventListener('mousemove', draw);
+    canvas.removeEventListener('mouseup', stopDrawing);
+    canvas.removeEventListener('mouseout', stopDrawing);
+
 }
 
 
@@ -322,7 +425,6 @@ function setupBrushSize() {
 
 
 function startTimer() {
-    timerElement = document.getElementById('timer');;
 
     clearInterval(timerInterval);
     gameTime = 60;

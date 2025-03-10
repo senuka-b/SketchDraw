@@ -23,10 +23,6 @@ rooms = {
     }
 }
 
-messages =  {roomCode: {
-    username: username,
-    message: message
-}, ...}
 */
 
 let users = {};
@@ -51,7 +47,8 @@ rooms["test"] = {
         drew: [],
         currentWord: null,
         currentDrawer: null,
-        round: 1,
+        round: 0,
+        timer: 60,
         isActive: false
     }
 }
@@ -69,6 +66,7 @@ app.post("/create-room", (req, res) => {
             currentWord: null,
             currentDrawer: null,
             round: 1,
+            timer: 60,
             isActive: false
         }
     };
@@ -81,6 +79,25 @@ app.post("/create-room", (req, res) => {
 
 io.on("connection", (socket) => {
     console.log("[USER CONNECT] A user connected:", socket.id);
+
+    function startTimer() {
+        const roomCode = users[socket.id]?.roomCode;
+
+        if (!rooms[roomCode]) return;
+
+        let interval = setInterval(() => {
+            if (!rooms[roomCode]) return;
+
+            if (rooms[roomCode].gameData.timer > 0) {
+                rooms[roomCode].gameData.timer--;
+                io.to(roomCode).emit("timer", rooms[roomCode].gameData.timer);
+            } else {
+                io.to(roomCode).emit("round-over");
+                clearInterval(interval);
+            }
+        }, 1000);
+    }
+
 
     socket.on("leave-room", () => {
         console.log("[LEAVE ROOM] User " + JSON.stringify(users[socket.id]));
@@ -131,17 +148,20 @@ io.on("connection", (socket) => {
                 .filter(user => user.roomCode === roomCode)
         });
 
-        if (io.sockets.adapter.rooms.get(roomCode).size >= 5) { // Start the game
+        if (io.sockets.adapter.rooms.get(roomCode).size >= 2) { // Start the game
             rooms[roomCode].gameData.isActive = true;
-            rooms[roomCode].gameData.currentDrawer = random(Array.from(io.sockets.adapter.rooms.get(roomCode)));
+            rooms[roomCode].gameData.currentDrawer = random(getUsernamesInRoom(roomCode));
             rooms[roomCode].gameData.currentWord = random(JSON.parse(fs.readFileSync("./word-list.json", "utf-8"))["words"]);
 
+            startTimer();
+
             io.to(roomCode).emit("game-started", rooms[roomCode].gameData);
-            console.log("Game Started: " + JSON.stringify(rooms[roomCode].gameData));
+            console.log("[GAME START] Game Started: " + JSON.stringify(rooms[roomCode].gameData));
         }
     });
 
     socket.on("draw", (data) => {
+        data["username"] = users[socket.id]?.username;
 
         const roomCode = users[socket.id].roomCode;
         if (roomCode) {
@@ -150,7 +170,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("drawing-status", (data) => {
-        const roomCode = users[socket.id].roomCode;
+        const roomCode = users[socket.id]?.roomCode;
         if (roomCode) {
             io.to(roomCode).emit("drawing-status", data);
         }

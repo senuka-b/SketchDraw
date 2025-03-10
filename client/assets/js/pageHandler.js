@@ -11,6 +11,7 @@ export class PageHandler {
                 document.getElementById('root').innerHTML = data;
                 init(page, room);
 
+
             })
             .catch(error => {
                 console.error('Error loading content:', error);
