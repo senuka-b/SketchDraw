@@ -89,7 +89,7 @@ io.on("connection", (socket) => {
             const { [roomCode]: _, ...rest } = rooms;
             rooms = rest;
 
-
+            
             return io.to(roomCode).emit("game-over", { drew: Object.values(users) });
         }
 
